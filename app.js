@@ -50,9 +50,12 @@ const User = require("./models/user");
 const mongoose = require("mongoose");
 mongoose.connect("mongodb://localhost/madlib");
 
-
 passport.use(
-  new LocalStrategy({ usernameField: "email" }, function(email, password, done) {
+  new LocalStrategy({ usernameField: "email" }, function(
+    email,
+    password,
+    done
+  ) {
     User.findOne({ email }, function(err, user) {
       console.log(user);
       if (err) return done(err);
@@ -161,36 +164,52 @@ app.get("/login", (req, res) => {
 
 // Set up middleware to allow/disallow login/logout
 const loggedInOnly = (req, res, next) => {
-  return req.user ? next() : res.redirect('/login');
+  return req.user ? next() : res.redirect("/login");
 };
 const loggedOutOnly = (req, res, next) => {
-  return !req.user ? next() : res.redirect('/');
+  return !req.user ? next() : res.redirect("/");
 };
 
 const onLogout = (req, res) => {
-
   // Passport convenience method to logout
   req.logout();
 
   // Ensure always redirecting as GET
-  req.method = 'GET';
-  res.redirect('/login');
+  req.method = "GET";
+  res.redirect("/login");
 };
 
 app.get("/logout", loggedInOnly, onLogout);
-app.delete('/logout', loggedInOnly, onLogout);
+app.delete("/logout", loggedInOnly, onLogout);
+
+app.get("/register", (req, res) => {
+  res.render("register");
+});
 
 app.post(
   "/login",
   passport.authenticate("local", {
-  successRedirect: "/",
-  failureRedirect: "/login",
-  failureFlash: true
+    successRedirect: "/",
+    failureRedirect: "/login",
+    failureFlash: true
   })
 );
 
-app.get("/register", (req, res) => {
-  res.render("register");
+app.post("/register", async (req, res, next) => {
+  try {
+    const { email, password } = req.body;
+    //let parent = await User.findById(referrer);
+    const user = await new User({
+      email,
+      password
+    });
+    console.log("email:", email, " password:", password);
+    user.save(err => {
+      res.redirect("/login");
+    });
+  } catch (err) {
+    console.log(err);
+  }
 });
 
 // ----------------------------------------
