@@ -43,6 +43,7 @@ app.use((req, res, next) => {
 // ----------------------------------------
 const passport = require("passport");
 const LocalStrategy = require("passport-local").Strategy;
+const BearerStrategy = require('passport-http-bearer').Strategy;
 app.use(passport.initialize());
 app.use(passport.session());
 
@@ -67,6 +68,18 @@ passport.use(
   })
 );
 
+passport.use( 
+  new BearerStrategy((token, done) => {
+    // Find the user by token
+    User.findOne({ token: token })
+      .then(user => {
+          // Pass the user if found else false
+      return done(null, user || false);
+        })
+    .catch(e => done(null, false));
+  });
+);
+  
 passport.serializeUser(function(user, done) {
   done(null, user.id);
 });
@@ -138,6 +151,10 @@ app.use(morganToolkit());
 //   req.flash("Hi!");
 //   res.render("welcome/index");
 // });
+
+const madLibRouter = require('./routers/madLibRouter');
+
+app.use('/api/v1', madLibRouter);
 
 app.get("/", async (req, res) => {
   try {
