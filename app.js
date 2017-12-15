@@ -43,14 +43,40 @@ app.use((req, res, next) => {
 // ----------------------------------------
 const passport = require("passport");
 const LocalStrategy = require("passport-local").Strategy;
-
 app.use(passport.initialize());
 app.use(passport.session());
+
+const User = require("./models/user");
+const mongoose = require("mongoose");
+mongoose.connect("mongodb://localhost/madlib");
+
+
+passport.use(
+  new LocalStrategy({ usernameField: "email" }, function(email, password, done) {
+    User.findOne({ email }, function(err, user) {
+      console.log(user);
+      if (err) return done(err);
+      if (!user || !user.validatePassword(password)) {
+        return done(null, false, { message: "Invalid username/password" });
+      }
+      return done(null, user);
+    });
+  })
+);
+
+passport.serializeUser(function(user, done) {
+  done(null, user.id);
+});
+
+passport.deserializeUser(function(id, done) {
+  User.findById(id, function(err, user) {
+    done(err, user);
+  });
+});
 
 // ----------------------------------------
 //middleware to connect to MongoDB via mongoose in your `app.js`
 // ----------------------------------------
-const mongoose = require("mongoose");
 //mongoose.connect("mongodb://localhost/assignment_ponz_scheme");
 app.use((req, res, next) => {
   if (mongoose.connection.readyState) {
@@ -128,6 +154,40 @@ app.get("/", async (req, res) => {
 app.get("/login", (req, res) => {
   res.render("login");
 });
+
+// ----------------------------------------
+// Session Helper Middlewares
+// ----------------------------------------
+
+// Set up middleware to allow/disallow login/logout
+const loggedInOnly = (req, res, next) => {
+  return req.user ? next() : res.redirect('/login');
+};
+const loggedOutOnly = (req, res, next) => {
+  return !req.user ? next() : res.redirect('/');
+};
+
+const onLogout = (req, res) => {
+
+  // Passport convenience method to logout
+  req.logout();
+
+  // Ensure always redirecting as GET
+  req.method = 'GET';
+  res.redirect('/login');
+};
+
+app.get("/logout", loggedInOnly, onLogout);
+app.delete('/logout', loggedInOnly, onLogout);
+
+app.post(
+  "/login",
+  passport.authenticate("local", {
+  successRedirect: "/",
+  failureRedirect: "/login",
+  failureFlash: true
+  })
+);
 
 app.get("/register", (req, res) => {
   res.render("register");
