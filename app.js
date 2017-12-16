@@ -175,6 +175,21 @@ app.get("/login", (req, res) => {
   res.render("login");
 });
 
+var faker = require("faker");
+
+app.get("/words/nouns", (req, res) => {
+  let nounArr = Array(1000).map(elem => faker.hacker.noun());
+  res.json(nounArr);
+});
+app.get("/words/adjectives", (req, res) => {
+  // the below should be moved elsewhere
+  let verbArr = Array(1000).map(elem => faker.hacker.verb());
+  let adverbArr = verbArr.map(elem => elem + "ly");
+
+  let adjArr = Array(1000).map(elem => faker.hacker.adjectives());
+  res.json(adjArr);
+});
+
 // ----------------------------------------
 // Session Helper Middlewares
 // ----------------------------------------

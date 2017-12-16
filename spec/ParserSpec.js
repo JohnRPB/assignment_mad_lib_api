@@ -1,25 +1,27 @@
-let Parser = require("./Parser");
+let Parser = require("../Parser");
+let replaceWord = Parser.replaceWord;
 
 describe("Parser", () => {
   describe("replaceWord()", () => {
-    it("replaces adjective with {{adjective}}", done => {
-      expect(replaceWord("little")).toEqual("{{adjective}}");
-      done();
+    it("replaces adjective with {{adjective}}", async () => {
+      let replacement = await replaceWord("little");
+      expect(replacement).toEqual("{{adjective}}");
     });
 
-    it("replaces noun with {{noun}}", done => {
-      expect(replaceWord("John")).toEqual("{{noun}}");
-      done();
+    it("replaces noun with {{noun}}", async () => {
+      let replacement = await replaceWord("John");
+      expect(replacement).toEqual("{{noun}}");
     });
 
-    it("replaces adverb with {{adverb}}", done => {
-      expect(replaceWord("quickly")).toEqual("{{adverb}}");
-      done();
+    it("replaces adverb with {{adverb}}", async () => {
+      let replacement = await replaceWord("quickly");
+      expect(replacement).toEqual("{{adverb}}");
     });
 
-    it("replaces verb with {{verb}}", done => {
-      expect(replaceWord("run")).toEqual("{{verb}}");
-      done();
+    it("replaces verb with {{verb}}", async () => {
+      let replacement = await replaceWord("eat");
+      expect(replacement).toEqual("{{verb}}");
     });
   });
 });
+
